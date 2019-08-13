@@ -23,7 +23,12 @@ class UserController extends GenericController
               'company' => []
             ]
           ],
-          'user_roles' => ['is_child' => true],
+          'user_roles' => [
+            'is_child' => true,
+            'foreign_tables' => [
+              'role' => []
+            ]
+          ],
           // 'user_bio' => ['validation_required' => false],
           // 'user_addresses' => [],
           // 'user_educational_backgrounds' => [],
@@ -50,110 +55,45 @@ class UserController extends GenericController
       //   }
       // }
     }
-
-    public function create(Request $request){
-      // printR($request->all());
-
-      $entry = $request->all();
-      // $entry['email'] = rand().'@yahoo.com';
-      $validation = new Core\GenericFormValidation($this->tableStructure, 'create');
-      if(!config('payload.company_id')){
-        $validation->additionalRule = ['company_code' => 'required|exists:companies,code'];
-        $entry['user_role'] = 101;
-      }else{
-        $validation->additionalRule = ['company_user.company_id' => 'required|exists:companies,id'];
-        if(config('payload.roles.1') == null){
-          // $validation->additionalRule['user_role'] = ['required'];
-          // $validation->additionalRule['user_role.id'] = 'required|gte:100';
-          $companyUser = isset($entry['company_user']) ? $entry['company_user'] : ['company_id' => config('payload.company_id')];
-          $entry['company_user'] = $companyUser;
+    public function hasInvalidUserRoles($userRoles){
+      for($x = 0; $x < count($userRoles); $x++){
+        if($userRoles[$x]['role_id'] * 1 < 100 && !$this->userSession('roles.1')){
+          return true;
+        }
+        if($userRoles[$x]['role_id'] * 1 >= 100 && !$this->userSession('roles.100')){
+          return true;
         }
       }
-    // printR($entry);
-
-      if($validation->isValid($entry)){
-        $companyUser = isset($entry['company_user']) ? $entry['company_user'] : [];
-        unset($entry['company_user']);
-        $genericCreate = new Core\GenericCreate($this->tableStructure, $this->model);
-        $userResult = $genericCreate->create($entry);
-        if($userResult['id']){ // create company user
-          $this->model = new App\CompanyUser();
-          $this->tableStructure = [];
-          $this->initGenericController();
-          $genericCreate = new Core\GenericCreate($this->tableStructure, $this->model);
-          $companyID = null;
-
-          $status = 0;
-          if(config('payload.roles.1')){ // super admin
-            $companyID = $companyUser['company_id'];
-            $status = $entry['status'];
-          }else if(config('payload.roles.100')){ //company admin
-            $companyID = config('payload.company_id');
-            $status = $entry['status'];
-          }else{
-            $company = (new App\Company())->where('code', $entry['company_code'])->get()->first()->toArray();
-
-            $companyID = $company['id'];
-            $this->model->useSessionCompanyID = false;
-          }
-          $this->responseGenerator->addDebug('company', 'got here');
-          $companUserEntry = [
-            'company_id' => $companyID,
-            'user_id' => $userResult['id'],
-            'status' => $status // not verified
-          ];
-          $companyUserResult = $genericCreate->create($companUserEntry);
-          if($companyUserResult['id']){
-            $this->model = new App\UserRole();
-            if($status === 0){ // registration
-              $this->model->useSessionCompanyID = false;
-            }
-            $this->tableStructure = [];
-            $this->initGenericController();
-            $genericCreate = new Core\GenericCreate($this->tableStructure, $this->model);
-            $roleID =  (config('payload.roles') == null || (!config('payload.roles.1') && !config('payload.roles.100'))) ? 101 : $userRole['id'];
-            $this->responseGenerator->addDebug('roleID', $roleID);
-            $this->responseGenerator->addDebug('payload.roles.1', config('payload.roles.1'));
-            $this->responseGenerator->addDebug('payload.roles.100', config('payload.roles.100'));
-            $userRoleEntry = [
-              "user_id" => $userResult['id'],
-              "role_id" => $roleID,
-              "company_id" => $companyID
-            ];
-            $userRoleResult = $genericCreate->create($userRoleEntry);
-            if($roleID * 1 == 100){
-              $userRoleEntry = [
-                "user_id" => $userResult['id'],
-                "role_id" => 101,
-                "company_id" => $companyID
-              ];
-              $this->model = new App\UserRole();
-              $this->tableStructure = [];
-              $this->initGenericController();
-              $genericCreate = new Core\GenericCreate($this->tableStructure, $this->model);
-              $genericCreate->create($userRoleEntry);
-            }
-            if($userRoleResult['id']){
-              $this->responseGenerator->setSuccess([
-                'id' => $userResult['id'],
-                // 'company_user_id' => $companyUserResult['id'],
-                'user_role_id' => $userRoleResult['id']
-              ]);
-            }
-          }else{
-            $this->responseGenerator->addDebug('failed to create $companyUserResult', $companyRoleEntry);
-          }
-        }else{
-          $this->responseGenerator->setSuccess([
-            'id' => $userResult['id']
-          ]);
-        }
-      }else{
+      // return $userRoles
+    }
+    public function create(Request $request){
+      $requestData = $request->all();
+      $requestData['company_user'] = [
+        "company_id" => $this->userSession('company_id')
+      ];
+      if(isset($requestData['user_roles']) && $this->hasInvalidUserRoles($requestData['user_roles'])){
         $this->responseGenerator->setFail([
+          "code" => 2,
+          "message" => "You dont have the previlege to set the user roles"
+        ]);
+        return $this->responseGenerator->generate();
+      }
+      $resultObject = [
+        "success" => false,
+        "fail" => false
+      ];
+      $validation = new Core\GenericFormValidation($this->tableStructure, 'create');
+      if($validation->isValid($requestData)){
+          $genericCreate = new Core\GenericCreate($this->tableStructure, $this->model);
+          $resultObject['success'] = $genericCreate->create($requestData);
+      }else{
+        $resultObject['fail'] = [
           "code" => 1,
           "message" => $validation->validationErrors
-        ]);
+        ];
       }
+      $this->responseGenerator->setSuccess($resultObject['success']);
+      $this->responseGenerator->setFail($resultObject['fail']);
       return $this->responseGenerator->generate();
     }
 

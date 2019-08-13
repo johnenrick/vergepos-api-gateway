@@ -17,12 +17,9 @@ class DiscountController extends GenericController
     ];
     $this->basicOperationAuthRequired["retrieve"] = false;
     $this->initGenericController();
-    $this->retrieveCustomQueryModel = function($queryModel){
-      if($this->user('user_type_id') >= 10){
-        return $queryModel->where('company_id', $this->user('company_id'));
-      }else{
-        return $queryModel;
-      }
+    $this->retrieveCustomQueryModel = function($queryModel, $leftJoinedTable){
+      $queryModel->where('company_id', $this->userSession('company_id'));
+      return $queryModel;
     };
   }
 }

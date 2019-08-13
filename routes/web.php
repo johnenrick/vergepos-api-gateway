@@ -13,10 +13,13 @@
 
 Route::get('/', function () {
     // return view('welcome');
-    echo str_plural('media');
+    echo str_plural('detail');
 });
 Route::get('v1/', function(){
   echo 'Welcome to API v1';
+});
+Route::post('v1/test-connnection', function(){
+  echo 'Ok!';
 });
 Route::post('v1/{module}/{function}', "ServiceLayerController@index");
 Route::group([

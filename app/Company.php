@@ -11,4 +11,7 @@ class Company extends GenericModel
     'parent_company_id' => 'exists:company,id'
   ];
   protected $validationRuleNotRequired = ['parent_company_id'];
+  public function company_detail(){
+    return $this->hasOne('App\CompanyDetail');
+  }
 }
