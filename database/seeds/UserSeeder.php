@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
       DB:: table('user_roles')->truncate();
       DB::statement('SET FOREIGN_KEY_CHECKS=1;');
       $users = [
-        ["id" => 1, "username" => 'dev', "email" => "plenosjohn@yahoo.com", "password" => Hash::make("dev"), "user_type_id" => "1", "status" => 1],
+        ["id" => 1, "username" => 'dev', "email" => "plenosjohn@yahoo.com", "password" => Hash::make("dev"), "status" => 1],
       ];
       $companyUsers = [
         ["user_id" => 1, 'company_id' => 1, 'status' => 1]
