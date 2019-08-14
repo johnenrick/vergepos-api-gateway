@@ -53,8 +53,8 @@ $apiResource = [
   'user',
   'role',
   'user-role',
-  'use-acces-list',
-  'role-acces-list',
+  'user-access-list',
+  'role-access-list',
   'service',
   'service-action',
   'company',
@@ -65,7 +65,6 @@ $apiResource = [
   'transaction'
 ];
 $customAPIResources = [
-  'borrow-cycle/end'
 ];
 $api_resource($apiResource);
 $custom_api($customAPIResources);
