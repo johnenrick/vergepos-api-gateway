@@ -23,6 +23,6 @@ class TransactionVirtualColumn extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('transaction_computations');
+      DB::statement("DROP VIEW transaction_computations");
     }
 }

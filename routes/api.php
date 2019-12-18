@@ -62,7 +62,8 @@ $apiResource = [
   'product',
   'discount',
   'transaction-number',
-  'transaction'
+  'transaction',
+  'customer'
 ];
 $customAPIResources = [
 ];
