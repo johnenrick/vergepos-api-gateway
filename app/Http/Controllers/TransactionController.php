@@ -25,11 +25,10 @@ class TransactionController extends GenericController
     $entry = $request->all();
     $resultObject = [
       "success" => false,
-      "fail" => false
+      "fail" => false  
     ];
     $validation = new Core\GenericFormValidation($this->tableStructure, 'create');
     if($validation->isValid($entry)){
-
       $result = $this->createTransaction($entry); // $genericCreate->create($entry);
       $this->responseGenerator->addDebug('txId', $result);
       if($result){
@@ -69,5 +68,8 @@ class TransactionController extends GenericController
       ]);
       return false;
     }
+  }
+  public function upSync(Request $request){
+
   }
 }

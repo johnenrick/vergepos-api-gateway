@@ -14,4 +14,7 @@ class Company extends GenericModel
   public function company_detail(){
     return $this->hasOne('App\CompanyDetail');
   }
+  public function stores(){
+    return $this->hasMany('App\Store');
+  }
 }

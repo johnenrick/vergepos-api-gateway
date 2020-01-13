@@ -14,7 +14,12 @@ class CompanyController extends GenericController
       ],
       'foreign_tables' => [
         'company_detail' => [],
-        'company_users' => []
+        'company_users' => [],
+        'stores' => [
+          'foreign_tables' => [
+            'store_terminals' => []
+          ]
+        ]
       ]
     ];
     $this->initGenericController();
@@ -32,7 +37,6 @@ class CompanyController extends GenericController
       'user.user_basic_information.first_name' => 'required',
       'user.user_basic_information.last_name' => 'required',
       'user.user_basic_information.last_name' => 'required',
-
     ];
     $this->responseGenerator->addDebug('entry', $entry);
     if($validation->isValid($entry)){
@@ -42,6 +46,7 @@ class CompanyController extends GenericController
         $genericCreate = new Core\GenericCreate($this->tableStructure, $this->model);
         $resultObject['success'] = $genericCreate->create($entry);
         if($resultObject['success']){
+          $companyId = $resultObject['success']['id'];
           $userModel = new App\User();
           $userGenericCreate = new Core\GenericCreate((new Core\TableStructure([
             'columns' => [
@@ -53,9 +58,10 @@ class CompanyController extends GenericController
           $userResult = $userGenericCreate->create($userEntry);
           if($userResult){
             $resultObject['success']['user'] = $userResult;
-            $this->addCompanyUser($resultObject['success']['id'], $userResult['id']);
-            $this->addUserDefaultRole($resultObject['success']['id'], $userResult['id']);
+            $this->addCompanyUser($companyId, $userResult['id']);
+            $this->addUserDefaultRole($companyId, $userResult['id']);
           }
+          $resultObject['success']['stores'] = $this->addDefaultStore($companyId, $entry['name'], $entry['company_detail']['address']);
         }
     }else{
       $resultObject['fail'] = [
@@ -67,6 +73,61 @@ class CompanyController extends GenericController
     $this->responseGenerator->setSuccess($resultObject['success']);
     $this->responseGenerator->setFail($resultObject['fail']);
     return $this->responseGenerator->generate();
+  }
+  public function update(Request $request){
+    $resultObject = [
+      "success" => false,
+      "fail" => false
+    ];
+    $entry = $request->all();
+    // echo $this->userSession('company_id') . "---" . $entry['id']; 
+    if($this->userSession('company_id') != $entry['id']){
+      $resultObject['fail'] = [
+        "code" => 401,
+        "message" => "Do not have permission"
+      ];
+      $this->responseGenerator->setFail($resultObject['fail']);
+      return $this->responseGenerator->generate();
+    }
+
+
+    $validation = new Core\GenericFormValidation($this->tableStructure, 'update');
+
+    if($validation->isValid($entry)){
+      $genericUpdate = new Core\GenericUpdate($this->tableStructure, $this->model);
+      $resultObject['success'] = $genericUpdate->update($entry);
+    }else{
+      $resultObject['fail'] = [
+        "code" => 1,
+        "message" => $validation->validationErrors
+      ];
+    }
+    $this->responseGenerator->setSuccess($resultObject['success']);
+    $this->responseGenerator->setFail($resultObject['fail']);
+    return $this->responseGenerator->generate();
+  }
+  private function addDefaultStore($companyId, $companyName, $companyAddress){
+    $store = [
+      'company_id' => $companyId,
+      'name' => $companyName,
+      'address' => $companyAddress,
+      'store_terminals' => [
+        [
+          'description' => 'Default'
+        ]
+      ]
+    ];
+    $storeModel = new App\Store();
+    $storeModel->useSessionCompanyID = false;
+    $tableStructure = (new Core\TableStructure([
+      'columns' => [
+      ],
+      'foreign_tables' => [
+        'store_terminals' => []
+      ]
+    ], $storeModel))->getStructure();
+    $storeResult = (new Core\GenericCreate($tableStructure, $storeModel))->create($store);
+    return $storeResult;
   }
   private function addCompanyUser($companyID, $userID){
     $companyUser = ['company_id' => $companyID, 'user_id' => $userID];

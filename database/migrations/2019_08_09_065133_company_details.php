@@ -16,7 +16,7 @@ class CompanyDetails extends Migration
       Schema::create('company_details', function(Blueprint $table){
         $table->increments('id');
         $table->unsignedInteger('company_id');
-        $table->text('nature')->comment('Nature of Business');
+        $table->text('nature')->nullable()->comment('Nature of Business');
         $table->text('address');
         $table->text('contact_number');
         $table->timestamps();
