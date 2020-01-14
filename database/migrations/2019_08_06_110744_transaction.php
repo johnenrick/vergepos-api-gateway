@@ -20,6 +20,7 @@ class Transaction extends Migration
         $table->tinyInteger('status')->comment('1 - transaction, 2 - void, 3 - reprint');
         $table->double('cash_tendered');
         $table->double('cash_amount_paid');
+        $table->text('discount_remarks')->nullable();
         $table->timestamps();
         $table->softDeletes();
       });
