@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Company extends GenericModel
 {
-  protected $validationRule = [
-    'name' => 'required|email|unique:companies,name,except,id|min:4',
+  protected $validationRules = [
+    'name' => 'required|min:4|unique:companies,name,except,id',
     'parent_company_id' => 'exists:company,id'
   ];
   protected $validationRuleNotRequired = ['parent_company_id'];

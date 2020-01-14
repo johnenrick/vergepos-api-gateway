@@ -30,7 +30,7 @@ class CompanyController extends GenericController
       "success" => false,
       "fail" => false
     ];
-    $validation = new Core\GenericFormValidation($this->tableStructure, 'create');
+    $validation = new Core\GenericFormValidation($this->tableStructure, 'update');
     $validation->additionalRule = [
       'user.email' => 'required|email|unique:users,email',
       'user.password' => 'required|min:6',
@@ -90,9 +90,9 @@ class CompanyController extends GenericController
       return $this->responseGenerator->generate();
     }
 
-
-    $validation = new Core\GenericFormValidation($this->tableStructure, 'update');
-
+    $this->tableStructure = (new Core\TableStructure($this->tableStructure, $this->model))->getStructure();
+    $validation = new Core\GenericFormValidation($this->tableStructure, 'create');
+    $this->responseGenerator->addDebug('validatio', $validation);
     if($validation->isValid($entry)){
       $genericUpdate = new Core\GenericUpdate($this->tableStructure, $this->model);
       $resultObject['success'] = $genericUpdate->update($entry);
