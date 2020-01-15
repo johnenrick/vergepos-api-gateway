@@ -90,8 +90,8 @@ class CompanyController extends GenericController
       return $this->responseGenerator->generate();
     }
 
-    $this->tableStructure = (new Core\TableStructure($this->tableStructure, $this->model))->getStructure();
-    $validation = new Core\GenericFormValidation($this->tableStructure, 'create');
+    // $this->tableStructure = (new Core\TableStructure($this->tableStructure, $this->model))->getStructure();
+    $validation = new Core\GenericFormValidation($this->tableStructure, 'update');
     $this->responseGenerator->addDebug('validatio', $validation);
     if($validation->isValid($entry)){
       $genericUpdate = new Core\GenericUpdate($this->tableStructure, $this->model);
