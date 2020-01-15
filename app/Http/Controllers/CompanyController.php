@@ -30,7 +30,7 @@ class CompanyController extends GenericController
       "success" => false,
       "fail" => false
     ];
-    $validation = new Core\GenericFormValidation($this->tableStructure, 'update');
+    $validation = new Core\GenericFormValidation($this->tableStructure, 'create');
     $validation->additionalRule = [
       'user.email' => 'required|email|unique:users,email',
       'user.password' => 'required|min:6',
