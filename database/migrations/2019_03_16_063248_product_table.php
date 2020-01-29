@@ -17,7 +17,7 @@ class ProductTable extends Migration
         $table->bigIncrements('id');
         $table->unsignedInteger('category_id');
         $table->char('description', 50);
-        $table->char('short_description', 20);
+        $table->char('short_description', 20)->nullable();
         $table->float('cost');
         $table->float('price');
         $table->boolean('is_available')->default(1);

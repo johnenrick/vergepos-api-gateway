@@ -4,7 +4,7 @@ function printR($array, $description = '-------'){
   echo "<br>".$description;
   echo "<pre>";
   print_r($array);
-  echo "</pre>";
+  echo "</pre>\n";
 }
 
 function strToPascal($string){

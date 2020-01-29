@@ -15,9 +15,10 @@ class TransactionNumber extends Migration
     {
       Schema::create('transaction_numbers', function(Blueprint $table){
         $table->bigIncrements('id');
+        $table->unsignedBigInteger('number'); // NEED TO FIX
         $table->tinyInteger('operation')->comment('1 - transaction, 2 - void, 3 - reprint');
         $table->unsignedBigInteger('user_id')->comment('User who made the transaction');
-        $table->unsignedBigInteger('company_store_terminal_id')->nullable();
+        $table->unsignedBigInteger('store_terminal_id')->nullable();
         $table->timestamps();
         $table->softDeletes();
       });

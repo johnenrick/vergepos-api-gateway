@@ -19,7 +19,7 @@ class UserBasicInformation extends Migration
           $table->char('first_name', 30);
           $table->char('middle_name', 30)->nullable();
           $table->char('last_name', 30);
-          $table->timestamp('birthdate');
+          $table->timestamp('birthdate')->nullable();
           $table->timestamps();
           $table->softDeletes();
       });
