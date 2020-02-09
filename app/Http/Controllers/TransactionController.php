@@ -138,7 +138,6 @@ class TransactionController extends GenericController
         "message" => $validator->errors()->toArray()
       ];
       $this->responseGenerator->setFail($resultObject['fail']);
-      
     }else{
       $this->storeTerminalId = $entry['store_terminal_id'];
       $transactions = $entry['transactions'];
@@ -173,7 +172,6 @@ class TransactionController extends GenericController
       }
       $this->responseGenerator->setSuccess($transactionResults);
     }
-    
     return $this->responseGenerator->generate();
   }
   public function saveTransactionProducts($transactionId, $transactionProducts){
@@ -202,7 +200,7 @@ class TransactionController extends GenericController
     return $productResults;
   }
   public function saveTransactionNumber($transactionNumber){
-    $doesExists = false; // count((new App\TransactionNumber())->where('store_terminal_id', $this->storeTerminalId)->where('number', $transactionNumber['number'])->get()->toArray()) > 0;
+    $doesExists = count((new App\TransactionNumber())->where('store_terminal_id', $this->storeTerminalId)->where('number', $transactionNumber['number'])->get()->toArray()) > 0;
     if($doesExists){
       return 'already_exists';
     }
