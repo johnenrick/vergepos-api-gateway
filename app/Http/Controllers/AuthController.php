@@ -30,7 +30,7 @@ class AuthController extends Controller
     {
         $credentials = request(['email', 'password']);
         if (!$token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'Unauthorized: ' . json_encode($credentials)], 401);
         }
         $this->currentToken = $token;
         // $this->currentToken = auth()::attempt($credentials);
@@ -53,7 +53,7 @@ class AuthController extends Controller
       } catch (\Tymon\JWTAuth\Exceptions\UserNotDefinedException $e) {
           // do something
 
-          return response()->json(['error' => 'Unauthorized'], 401);
+          return response()->json(['error' => 'Unauthorized: ' . json_encode($request->all())], 401);
       }
       return response()->json(["data" => auth()->user()]);
     }
