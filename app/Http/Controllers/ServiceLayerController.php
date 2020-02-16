@@ -14,7 +14,7 @@ class ServiceLayerController extends Controller
       $serviceActionRegistry = $this->getService("$module/$function");
       // dd($serviceActionRegistry);
       if($serviceActionRegistry){
-        if($serviceActionRegistry['auth_required']){ // service needs token
+        if($serviceActionRegistry['auth_required'] * 1){ // service needs token
           if($this->isAuthorized($serviceActionRegistry['id'])){
             $resource = $this->requestResource($serviceActionRegistry, $request->all());
             return $this->generateResponse($resource);
