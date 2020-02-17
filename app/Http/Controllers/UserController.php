@@ -20,7 +20,13 @@ class UserController extends GenericController
             'is_child' => true,
             'validation_required' => false,
             'foreign_tables' => [
-              'company' => []
+              'company' => [
+                'is_child' => false,
+                'validation_required' => false,
+                'foreign_tables' => [
+                  'company_detail' => []
+                ]
+              ]
             ]
           ],
           'user_roles' => [
