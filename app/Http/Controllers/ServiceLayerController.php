@@ -37,6 +37,7 @@ class ServiceLayerController extends Controller
       ];
       $param['PAYLOAD'] = $this->user(null);
       $request['DEBUG'] = $this->userTokenData; $this->getSubPermissions($serviceActionRegistry['id']);
+      $request['api_link'] = $serviceActionRegistry['base_link'].'/'.$serviceActionRegistry['link'];
       // printR($param);
       try {
         $client = new Client(); //GuzzleHttp\Client

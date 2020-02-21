@@ -8,7 +8,7 @@ class Company extends GenericModel
 {
   protected $validationRules = [
     'name' => 'required|min:4|unique:companies,name,except,id',
-    'code' => 'required|min:4|unique:companies,name,except,id|max:20',
+    'code' => 'required|min:2|unique:companies,name,except,id|max:20',
     'parent_company_id' => 'exists:company,id'
   ];
   protected $validationRuleNotRequired = ['parent_company_id'];

@@ -107,7 +107,7 @@ class TransactionController extends GenericController
         ]
     ]))->executeQuery())->pluck('id')->toArray();
     // printR(implode($terminals, ','), 'terminals');
-    $this->responseGenerator->addDebug('terminals', $terminals);
+    $this->responseGenerator->addDebug('terminals:'.$this->userSession('company_id'), $terminals);
     $validator = Validator::make($entry, [
       'store_terminal_id' => "required|numeric|in:".implode($terminals, ','),
       
