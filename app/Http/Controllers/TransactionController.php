@@ -77,36 +77,7 @@ class TransactionController extends GenericController
       "success" => false,
       "fail" => false  
     ];
-    // printR($this->userSession('company_id') * 1, 'session');
-    $terminalModel = new App\StoreTerminal();
-    $terminals = collect((new Core\GenericRetrieve(
-      (new Core\TableStructure([
-        'columns' => [
-        ],
-        'foreign_tables' => [
-          'store' => []
-        ]
-      ], $terminalModel))->getStructure()
-      , $terminalModel, [
-        'condition' => [
-          [
-            'column' => 'store.company_id',
-            'value' => $this->userSession('company_id') * 1
-          ]
-        ],
-        'limit' => 100,
-        'offset' => 1,
-        'select' => [
-          'id',
-          // 'store' => [
-          //   'select' => [
-          //     'id',
-          //     'company_id'
-          //   ]
-          // ]
-        ]
-    ]))->executeQuery())->pluck('id')->toArray();
-    // printR(implode($terminals, ','), 'terminals');
+    $terminals = $this->getStoreTerminal($this->userSession('company_id'));
     $this->responseGenerator->addDebug('terminals:'.$this->userSession('company_id'), $terminals);
     $validator = Validator::make($entry, [
       'store_terminal_id' => "required|numeric|in:".implode($terminals, ','),
@@ -174,6 +145,37 @@ class TransactionController extends GenericController
       $this->responseGenerator->setSuccess($transactionResults);
     }
     return $this->responseGenerator->generate();
+  }
+  private function getStoreTerminal($companyId){
+    $terminalModel = new App\StoreTerminal();
+    $storeTerminalTableStructure = (new Core\TableStructure([
+      'columns' => [
+      ],
+      'foreign_tables' => [
+        'store' => []
+      ]
+    ], $terminalModel))->getStructure();
+    $storeTerminalRequestArray = [
+      'condition' => [
+        [
+          'column' => 'store.company_id',
+          'value' => $companyId
+        ]
+      ],
+      'limit' => 100,
+      'offset' => 0,
+      'select' => [
+        'id',
+        'store' => [
+          'select' => [
+            'id',
+            'company_id'
+          ]
+        ]
+      ]
+    ];
+    $storeTerminalGenericRetrieve = new Core\GenericRetrieve($storeTerminalTableStructure, $terminalModel, $storeTerminalRequestArray);
+    return collect($storeTerminalGenericRetrieve->executeQuery())->pluck('id')->toArray();
   }
   public function saveTransactionProducts($transactionId, $transactionProducts){
     $productResults = [];
