@@ -18,6 +18,7 @@ class TransactionProduct extends Migration
         $table->unsignedBigInteger('transaction_id');
         $table->unsignedBigInteger('product_id');
         $table->float('quantity');
+        $table->double('cost');
         $table->double('vat_sales');
         $table->double('vat_exempt_sales');
         $table->double('vat_zero_rated_sales');

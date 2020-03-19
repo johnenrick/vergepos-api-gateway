@@ -92,6 +92,7 @@ class TransactionController extends GenericController
       'transactions.*.transaction_products' => "required|array",
       'transactions.*.transaction_products.*.product_id' => "required|exists:products,id",
       'transactions.*.transaction_products.*.quantity' => "required|numeric",
+      'transactions.*.transaction_products.*.cost' => "required|numeric",
       'transactions.*.transaction_products.*.vat_sales' => "required|numeric",
       'transactions.*.transaction_products.*.vat_exempt_sales' => "required|numeric",
       'transactions.*.transaction_products.*.vat_zero_rated_sales' => "required|numeric",
@@ -102,7 +103,7 @@ class TransactionController extends GenericController
       'transactions.*.transaction_number.number' => "required|numeric",
       'transactions.*.transaction_number.user_id' => "required|exists:users,id",
       'transactions.*.transaction_number.operation' => "required|in:1,2,3",
-
+      'transactions.*.transaction_number.created_at' => "required|date_format:Y-m-d H:i:s",
     ]);
     if($validator->fails()){
       $resultObject['fail'] = [
@@ -123,19 +124,29 @@ class TransactionController extends GenericController
         ];
         $transaction = new App\Transaction();
         $transactionNumber = $this->saveTransactionNumber($transactions[$x]['transaction_number']);
-        if($transactionNumber == 'already_exists'){
+        $hasError = null;
+        if(gettype($transactionNumber) != 'integer'){
+          $hasError = $transactionNumber['reason'];
+        }
+        if($hasError == 'already_exists'){
           $transactionResult['error'] = 'transaction_number_already_exists';
+          $transactionResult['transaction_number'] = [
+            'id' => $transactionNumber['id']
+          ];
         }else{
           $transactionResult['transaction_number'] = [
             'id' => $transactionNumber
           ];
+          $createdAt = $transactions[$x]['transaction_number']['created_at'];
           $transaction->transaction_number_id = $transactionNumber;
           $transaction->status = $transactions[$x]['status'];
           $transaction->cash_tendered = $transactions[$x]['cash_tendered'];
           $transaction->cash_amount_paid = $transactions[$x]['cash_amount_paid'];
+          $transaction->created_at = $createdAt;
+          $transaction->updated_at = $createdAt;
           if($transaction->save()){
             $transactionResult['id'] = $transaction->id;
-            $transactionResult['transaction_products'] = $this->saveTransactionProducts($transactionResult['id'], $transactions[$x]['transaction_products']);
+            $transactionResult['transaction_products'] = $this->saveTransactionProducts($transactionResult['id'], $transactions[$x]['transaction_products'], $createdAt);
           }else{
             $transactionResult['error'] = 'create_transaction_failed';
           }
@@ -177,7 +188,7 @@ class TransactionController extends GenericController
     $storeTerminalGenericRetrieve = new Core\GenericRetrieve($storeTerminalTableStructure, $terminalModel, $storeTerminalRequestArray);
     return collect($storeTerminalGenericRetrieve->executeQuery())->pluck('id')->toArray();
   }
-  public function saveTransactionProducts($transactionId, $transactionProducts){
+  public function saveTransactionProducts($transactionId, $transactionProducts, $createdAt){
     $productResults = [];
     for($x = 0; $x < count($transactionProducts); $x++){
       $productResult = [
@@ -189,10 +200,13 @@ class TransactionController extends GenericController
       $transactionProductModel->product_id = $transactionProducts[$x]['product_id'];
       $transactionProductModel->quantity = $transactionProducts[$x]['quantity'];
       $transactionProductModel->vat_sales = $transactionProducts[$x]['vat_sales'];
+      $transactionProductModel->cost = $transactionProducts[$x]['cost'];
       $transactionProductModel->vat_exempt_sales = $transactionProducts[$x]['vat_exempt_sales'];
       $transactionProductModel->vat_zero_rated_sales = $transactionProducts[$x]['vat_zero_rated_sales'];
       $transactionProductModel->vat_amount = $transactionProducts[$x]['vat_amount'];
       $transactionProductModel->discount_amount = $transactionProducts[$x]['discount_amount'];
+      $transactionProductModel->created_at = $createdAt;
+      $transactionProductModel->updated_at = $createdAt;
       if($transactionProductModel->save()){
         $productResult['id'] = $transactionProductModel->id;
       }else{
@@ -203,18 +217,24 @@ class TransactionController extends GenericController
     return $productResults;
   }
   public function saveTransactionNumber($transactionNumber){
-    $doesExists = count((new App\TransactionNumber())->where('store_terminal_id', $this->storeTerminalId)->where('number', $transactionNumber['number'])->get()->toArray()) > 0;
+    $existingTransactionNumber = (new App\TransactionNumber())->where('store_terminal_id', $this->storeTerminalId)->where('number', $transactionNumber['number'])->get()->toArray();
+    $doesExists = count($existingTransactionNumber) > 0;
     if($doesExists){
-      return 'already_exists';
+      return [
+        'id' => $existingTransactionNumber[0]['id'],
+        'reason' => 'already_exists'
+      ];
     }
     $transactionNumberModel = new App\TransactionNumber();
     $transactionNumberModel->store_terminal_id = $this->storeTerminalId;
     $transactionNumberModel->number = $transactionNumber['number'];
     $transactionNumberModel->operation = $transactionNumber['operation'];
     $transactionNumberModel->user_id = $transactionNumber['user_id'];
+    $transactionNumberModel->created_at = $transactionNumber['created_at'];
+    $transactionNumberModel->updated_at = $transactionNumber['created_at'];
     $result = $transactionNumberModel->save();
     if($result){
-      return $transactionNumberModel->id;
+      return $transactionNumberModel->id * 1;
     }else{
       return false;
     }
