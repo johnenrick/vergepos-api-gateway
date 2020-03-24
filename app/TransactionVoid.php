@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class TransactionVoid extends GenericModel
 {
     public function transaction_number(){
-        return $this->hasMany('App\TransactionNu');
+        return $this->hasMany('App\TransactionNumber');
     }
+    
 }

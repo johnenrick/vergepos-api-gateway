@@ -66,7 +66,8 @@ $apiResource = [
   'customer'
 ];
 $customAPIResources = [
-  'transaction/sync'
+  'transaction/sync',
+  'transaction-number/sync',
 ];
 $api_resource($apiResource);
 $custom_api($customAPIResources);
