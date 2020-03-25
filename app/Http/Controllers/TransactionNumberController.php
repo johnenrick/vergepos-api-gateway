@@ -20,10 +20,18 @@ class TransactionNumberController extends GenericController
             'transaction_products' => [],
             'transaction_computation' => [],
           ]
-          ],
-          'transaction_void' => [
-            'is_child' => true
+        ],
+        'transaction_void' => [
+          'is_child' => true,
+          'foreign_tables' => [
+            'transaction' => [
+              'foreign_tables' => [
+                'transaction_products' => [],
+                'transaction_computation' => [],
+              ]
+            ]
           ]
+        ]
       ]
     ];
     $this->initGenericController();
@@ -113,15 +121,21 @@ class TransactionNumberController extends GenericController
     $transaction = new App\Transaction();
     $transaction->transaction_number_id = $transactionNumberId;
     $transaction->status = $transactionEntry['status'];
-    $transaction->cash_tendered = $transactionEntry['cash_tendered'];
-    $transaction->cash_amount_paid = $transactionEntry['cash_amount_paid'];
-    $transaction->discount_id = $transactionEntry['discount_id'];
-    $transaction->discount_remarks = $transactionEntry['discount_remarks'];
+    $transaction->cash_tendered = $transactionEntry['cash_tendered'] . '';
+    $transaction->cash_amount_paid = $transactionEntry['cash_amount_paid'] . '';
+    
     $transaction->created_at = $createdAt;
     $transaction->updated_at = $createdAt;
+    if(isset($transactionEntry['discount_id']) && $transactionEntry['discount_id']){
+      $transaction->discount_id = $transactionEntry['discount_id'];
+      $transaction->discount_remarks = $transactionEntry['discount_remarks'];
+    }
     if($transaction->save()){
       $result['id'] = $transaction->id;
-      $result['transaction_products'] = $this->createTransactionProducts($result['id'], $transactionEntry['transaction_products'], $createdAt);
+      $result['transaction_products'] = [];
+      if(isset($transactionEntry['transaction_products']) && $transactionEntry['transaction_products']){
+        $result['transaction_products'] = $this->createTransactionProducts($result['id'], $transactionEntry['transaction_products'], $createdAt);
+      }
     }else{
       $result['error'] = 'create_failed';
     }
@@ -136,23 +150,27 @@ class TransactionNumberController extends GenericController
       ];
       $transactionProductModel = new App\TransactionProduct();
       $transactionProductModel->transaction_id = $transactionId;
-      $transactionProductModel->product_id = $transactionProducts[$x]['product_id'];
-      $transactionProductModel->quantity = $transactionProducts[$x]['quantity'];
-      $transactionProductModel->vat_sales = $transactionProducts[$x]['vat_sales'];
-      $transactionProductModel->cost = $transactionProducts[$x]['cost'];
-      $transactionProductModel->vat_exempt_sales = $transactionProducts[$x]['vat_exempt_sales'];
-      $transactionProductModel->vat_zero_rated_sales = $transactionProducts[$x]['vat_zero_rated_sales'];
-      $transactionProductModel->vat_amount = $transactionProducts[$x]['vat_amount'];
-      $transactionProductModel->discount_id = $transactionProducts[$x]['discount_id'];
-      $transactionProductModel->discount_amount = $transactionProducts[$x]['discount_amount'];
+      $transactionProductModel->product_id = $transactionProducts[$x]['product_id'] * 1;
+      $transactionProductModel->quantity = $transactionProducts[$x]['quantity'] . '';
+      $transactionProductModel->vat_sales = $transactionProducts[$x]['vat_sales'] . '';
+      $transactionProductModel->cost = $transactionProducts[$x]['cost'] . '';
+      $transactionProductModel->vat_exempt_sales = $transactionProducts[$x]['vat_exempt_sales'] . '';
+      $transactionProductModel->vat_zero_rated_sales = $transactionProducts[$x]['vat_zero_rated_sales'] . '';
+      $transactionProductModel->vat_amount = $transactionProducts[$x]['vat_amount'] . '';
       $transactionProductModel->created_at = $createdAt;
       $transactionProductModel->updated_at = $createdAt;
+      $discountAmount = 0;
+      if(isset($transactionProducts[$x]['discount_id']) && $transactionProducts[$x]['discount_id']){
+        $transactionProductModel->discount_id = $transactionProducts[$x]['discount_id'] * 1;
+        $discountAmount = $transactionProducts[$x]['discount_amount'] . '';
+      }
+      $transactionProductModel->discount_amount = $discountAmount;
       if($transactionProductModel->save()){
         $productResult['id'] = $transactionProductModel->id;
       }else{
         $productResult['error'] = 'create_failed';
       }
-      $productResults[] = $productResult;
+      $result[] = $productResult;
     }
     return $result;
   }
