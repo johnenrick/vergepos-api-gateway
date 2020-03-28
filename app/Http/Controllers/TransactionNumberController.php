@@ -35,6 +35,12 @@ class TransactionNumberController extends GenericController
       ]
     ];
     $this->initGenericController();
+    $this->retrieveCustomQueryModel = function($queryModel, &$leftJoinedTable){
+      $leftJoinedTable[] = 'company_users';
+      $queryModel = $queryModel->join('company_users', 'company_users.user_id', '=', 'transaction_numbers.user_id');
+      $queryModel = $queryModel->where('company_id', $this->userSession('company_id'));
+      return $queryModel;
+    };
   }
   public function sync(Request $request){
     $entry = $request->all();

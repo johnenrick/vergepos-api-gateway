@@ -49,17 +49,12 @@ class UserController extends GenericController
         ]
       ];
       $this->initGenericController();
-      // $this->retrieveCustomQueryModel = function($queryModel){
-      //
-      //   if(config('payload.company_id') && config('payload.company_id') > 1){
-      //     $queryModel = $queryModel->leftJoin('company_users', 'company_users.user_id', '=', 'users.id');
-      //     return $queryModel->where('company_users.company_id', config('payload.company_id'));
-      //   }else if(config('payload.company_id')){
-      //     return $queryModel->where('users.id', config('payload.company_id'));
-      //   }else{
-      //     return $queryModel;
-      //   }
-      // }
+      $this->retrieveCustomQueryModel = function($queryModel, &$leftJoinedTable){
+        $leftJoinedTable[] = 'company_users';
+        $queryModel = $queryModel->join('company_users', 'company_users.user_id', '=', 'users.id');
+        $queryModel = $queryModel->where('company_id', $this->userSession('company_id'));
+        return $queryModel;
+      };
     }
     public function hasInvalidUserRoles($userRoles){
       for($x = 0; $x < count($userRoles); $x++){
