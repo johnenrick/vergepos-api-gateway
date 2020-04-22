@@ -28,17 +28,17 @@ $api_resource = function($apiResource){
   }
 };
 $custom_api = function($customAPIResource, $method = 'post'){
-  // print_r($customAPI);
   for($x = 0; $x < count($customAPIResource); $x++){
     $customAPI = $customAPIResource[$x];
     $splitAPI = explode('/', $customAPIResource[$x]);
     $pascalCase = preg_replace_callback("/(?:^|-)([a-z])/", function($matches) {
       return strtoupper($matches[1]);
     }, $splitAPI[0]) . 'Controller';
+    $functionCamelCase = str_replace('-', '', lcfirst(ucwords($splitAPI[1], '-')));
     if($method == 'post'){
-      Route::post($customAPI, $pascalCase."@".$splitAPI[1]);
+      Route::post($customAPI, $pascalCase."@" . $functionCamelCase);
     }else{
-      Route::get($customAPI, $pascalCase."@".$splitAPI[1]);
+      Route::get($customAPI, $pascalCase."@". $functionCamelCase);
     }
   }
 };
@@ -68,6 +68,8 @@ $apiResource = [
 $customAPIResources = [
   'transaction/sync',
   'transaction-number/sync',
+  'user/request-change-password',
+  'user/confirm-change-password',
 ];
 $api_resource($apiResource);
 $custom_api($customAPIResources);

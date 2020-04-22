@@ -11,7 +11,7 @@ class User extends GenericModel
     // protected $fillable = ['user_id', 'first_name', 'middle_name', 'last_name', 'mobile_number', 'gender', 'birthdate', 'occupation'];
     protected $validationRules = [
       'email' => 'required|email|unique:users,email,except,id',
-      'password' => 'required|min:4',
+      'password' => 'required|min:6',
       'pin' => 'required|min:4|max:4'
     ];
     protected $defaultValue = [
