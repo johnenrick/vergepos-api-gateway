@@ -17,7 +17,8 @@ class CompanyController extends GenericController
         'company_users' => [],
         'stores' => [
           'foreign_tables' => [
-            'store_terminals' => []
+            'store_terminals' => [
+            ]
           ]
         ]
       ]

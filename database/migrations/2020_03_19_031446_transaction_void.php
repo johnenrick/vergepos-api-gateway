@@ -15,7 +15,7 @@ class TransactionVoid extends Migration
     {
         Schema::create('transaction_voids', function(Blueprint $table){
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('transaction_id');
+            $table->unsignedBigInteger('transaction_id')->comment('The voided transaction id');
             $table->unsignedBigInteger('transaction_number_id');
             $table->text('remarks');
             $table->timestamps();

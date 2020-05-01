@@ -17,7 +17,11 @@ class TransactionNumberController extends GenericController
         'transaction' => [
           'is_child' => true,
           'foreign_tables' => [
-            'transaction_products' => [],
+            'transaction_products' => [
+              'foreign_tables' => [
+                'product' => []
+              ]
+            ],
             'transaction_computation' => [],
           ]
         ],
@@ -26,7 +30,11 @@ class TransactionNumberController extends GenericController
           'foreign_tables' => [
             'transaction' => [
               'foreign_tables' => [
-                'transaction_products' => [],
+                'transaction_products' => [
+                  'foreign_tables' => [
+                    'product' => []
+                  ]
+                ],
                 'transaction_computation' => [],
               ]
             ]

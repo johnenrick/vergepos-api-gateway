@@ -14,7 +14,7 @@ class ModifyTransactionVoid extends Migration
     public function up()
     {
         Schema::table('transaction_voids', function (Blueprint $table) {
-            $table->unsignedInteger('voided_transaction_number')->after('transaction_id');
+            $table->unsignedInteger('voided_transaction_number')->after('transaction_id')->comment('The voided transaction number is necessary in syncing');
         });
     }
 

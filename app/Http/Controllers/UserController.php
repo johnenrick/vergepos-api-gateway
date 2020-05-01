@@ -159,6 +159,7 @@ class UserController extends GenericController
       }
       return $this->responseGenerator->generate();
     }
+    
     public function confirmChangePassword(Request $request){
       $requestArray = $request->all();
       $validator = Validator::make($requestArray, [

@@ -7,7 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends GenericModel
 {
   public $validationRules = [
-    'description' => 'required|max:50'
+    'description' => 'required|max:50',
+    'barcode' => 'unique:products,barcode,except,id',
+    'cost' => 'required|numeric',
+    'price' => 'required|numeric',
   ];
   public $validationRuleNotRequired = ['is_available', 'short_description', 'barcode'];
   public function systemGenerateValue($entry){
