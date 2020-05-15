@@ -50,24 +50,34 @@ class ServiceLayerController extends Controller
         $request['debug'] = $result['debug'];
       } catch (GuzzleException $e) {
         $responseRaw = $e->getResponse();
-        $response = json_encode($responseRaw->getBody());
-        if($responseRaw && $responseRaw->getStatusCode() == 422){ // validation error
-          $response = json_decode((string)$e->getResponse()->getBody(), true);
-          $request['error'] = $response['error'];
-        }else if($responseRaw && $responseRaw->getStatusCode() == 500){
-          $request['error'] = [
-            "code" => 500,
-            "message" => 'Server Error in the Resource',
-            "shot" => (string)$e->getResponse()->getBody()
-          ];
+        if($responseRaw){
+          $response = json_encode($responseRaw->getBody());
+          if($responseRaw->getStatusCode() == 422){ // validation error
+            $response = json_decode((string)$e->getResponse()->getBody(), true);
+            $request['error'] = $response['error'];
+          }else if($responseRaw->getStatusCode() == 500){
+            $request['error'] = [
+              "code" => 500,
+              "message" => 'Server Error in the Resource',
+              "shot" => (string)$e->getResponse()->getBody()
+            ];
+          }else{
+            $request['error'] = [
+              "link" => $serviceActionRegistry['base_link'].'/'.$serviceActionRegistry['link'],
+              "code" => $responseRaw->getStatusCode(),
+              "message" => 'Unknow Error',
+              "shot" => (string)$responseRaw->getBody()
+            ];
+          }
         }else{
           $request['error'] = [
             "link" => $serviceActionRegistry['base_link'].'/'.$serviceActionRegistry['link'],
             "code" => $responseRaw->getStatusCode(),
-            "message" => 'Unknow Error',
+            "message" => 'Response is null',
             "shot" => (string)$responseRaw->getBody()
           ];
         }
+        
         $request['debug'] = isset($response['debug']) ? $response['debug'] : null;
       }
       return $request;
