@@ -3,7 +3,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\BadResponseException ;
+use GuzzleHttp\Exception\ServerException ;
 use GuzzleHttp\Client;
 use App;
 class ServiceLayerController extends Controller
@@ -40,7 +41,7 @@ class ServiceLayerController extends Controller
       $request['api_link'] = $serviceActionRegistry['base_link'].'/'.$serviceActionRegistry['link'];
       // printR($param);
       try {
-        $client = new Client(); //GuzzleHttp\Client
+        $client = new Client(["verify" => false]); //GuzzleHttp\Client
         $result = $client->request('POST', $serviceActionRegistry['base_link'].'/'.$serviceActionRegistry['link'], [
           'json' => $param
         ]);
@@ -48,7 +49,7 @@ class ServiceLayerController extends Controller
         $request['data'] = $result['data'];
         $request['additional_data'] = $result['additional_data'];
         $request['debug'] = $result['debug'];
-      } catch (GuzzleException $e) {
+      } catch (BadResponseException $e) {
         $responseRaw = $e->getResponse();
         if($responseRaw){
           $response = json_encode($responseRaw->getBody());
@@ -59,26 +60,32 @@ class ServiceLayerController extends Controller
             $request['error'] = [
               "code" => 500,
               "message" => 'Server Error in the Resource',
-              "shot" => (string)$e->getResponse()->getBody()
+              "reponse_body" => (string)$e->getResponse()->getBody()
             ];
           }else{
             $request['error'] = [
               "link" => $serviceActionRegistry['base_link'].'/'.$serviceActionRegistry['link'],
               "code" => $responseRaw->getStatusCode(),
               "message" => 'Unknow Error',
-              "shot" => (string)$responseRaw->getBody()
+              "response_body" => (string)$responseRaw->getBody()
             ];
           }
         }else{
-          $request['error'] = [
-            "link" => $serviceActionRegistry['base_link'].'/'.$serviceActionRegistry['link'],
-            "code" => $responseRaw->getStatusCode(),
-            "message" => 'Response is null',
-            "shot" => (string)$responseRaw->getBody()
-          ];
+        //   $request['error'] = [
+        //     "link" => $serviceActionRegistry['base_link'].'/'.$serviceActionRegistry['link'],
+        //     "code" => 500,
+	       // "message" => 'Response is null'
+        //   ];
         }
         
         $request['debug'] = isset($response['debug']) ? $response['debug'] : null;
+      } catch(ServerException $eS){
+          $request['error'] = [
+              "link" => $serviceActionRegistry['base_link'].'/'.$serviceActionRegistry['link'],
+              "code" => $responseRaw->getStatusCode(),
+              "message" => 'Unknow Error',
+              "response_body" => (string)$responseRaw->getBody()
+            ];
       }
       return $request;
     }
