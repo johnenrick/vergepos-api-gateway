@@ -35,6 +35,7 @@ class CompanyController extends GenericController
     $validation->additionalRule = [
       'user.email' => 'required|email|unique:users,email',
       'user.password' => 'required|min:6',
+      'user.pin' => 'required|size:4',
       'user.user_basic_information.first_name' => 'required',
       'user.user_basic_information.last_name' => 'required',
       'user.user_basic_information.last_name' => 'required',

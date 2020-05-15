@@ -12,7 +12,7 @@ class User extends GenericModel
     protected $validationRules = [
       'email' => 'required|email|unique:users,email,except,id',
       'password' => 'required|min:6',
-      'pin' => 'required|min:4|max:4'
+      'pin' => 'required|size:4'
     ];
     protected $defaultValue = [
       'middle_name' => ''
