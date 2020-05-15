@@ -49,11 +49,12 @@ class ServiceLayerController extends Controller
         $request['additional_data'] = $result['additional_data'];
         $request['debug'] = $result['debug'];
       } catch (GuzzleException $e) {
-        $response = json_encode($e->getResponse()->getBody());
-        if($e->getResponse()->getStatusCode() == 422){ // validation error
+        $responseRaw = $e->getResponse();
+        $response = json_encode($responseRaw->getBody());
+        if($responseRaw && $responseRaw->getStatusCode() == 422){ // validation error
           $response = json_decode((string)$e->getResponse()->getBody(), true);
           $request['error'] = $response['error'];
-        }else if($e->getResponse()->getStatusCode() == 500){
+        }else if($responseRaw && $responseRaw->getStatusCode() == 500){
           $request['error'] = [
             "code" => 500,
             "message" => 'Server Error in the Resource',
@@ -61,9 +62,10 @@ class ServiceLayerController extends Controller
           ];
         }else{
           $request['error'] = [
-            "code" => $e->getResponse()->getStatusCode(),
+            "link" => $serviceActionRegistry['base_link'].'/'.$serviceActionRegistry['link'],
+            "code" => $responseRaw->getStatusCode(),
             "message" => 'Unknow Error',
-            "shot" => (string)$e->getResponse()->getBody()
+            "shot" => (string)$responseRaw->getBody()
           ];
         }
         $request['debug'] = isset($response['debug']) ? $response['debug'] : null;
