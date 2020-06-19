@@ -63,7 +63,9 @@ $apiResource = [
   'discount',
   'transaction-number',
   'transaction',
-  'customer'
+  'customer',
+  'store-terminal',
+  'store'
 ];
 $customAPIResources = [
   'transaction/sync',

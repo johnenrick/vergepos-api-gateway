@@ -21,6 +21,9 @@ Route::get('v1/', function(){
 Route::post('v1/test-connnection', function(){
   echo 'Ok!';
 });
+Route::get('v1/test-connnection', function(){
+  echo 'Ok!';
+});
 Route::post('v1/{module}/{function}', "ServiceLayerController@index");
 Route::group([
     'prefix' => 'auth'
