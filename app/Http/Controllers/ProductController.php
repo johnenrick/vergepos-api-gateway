@@ -20,6 +20,7 @@ class ProductController extends GenericController
       $leftJoinedTable[] = 'categories';
       $queryModel = $queryModel->join('categories', "categories.id", "=", "products.category_id");
       $queryModel = $queryModel->where('categories.company_id', $this->userSession('company_id'));
+      $queryModel = $queryModel->select('categories.company_id');
       return $queryModel;
     };
     $this->initGenericController();

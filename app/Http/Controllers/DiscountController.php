@@ -15,10 +15,10 @@ class DiscountController extends GenericController
       'foreign_tables' => [
       ]
     ];
-    $this->basicOperationAuthRequired["retrieve"] = false;
+    // $this->basicOperationAuthRequired["retrieve"] = true;
     $this->initGenericController();
-    $this->retrieveCustomQueryModel = function($queryModel, $leftJoinedTable){
-      $queryModel->where('company_id', $this->userSession('company_id'));
+    $this->retrieveCustomQueryModel = function($queryModel, &$leftJoinedTable){
+      $queryModel = $queryModel->where('company_id', $this->userSession('company_id'));
       return $queryModel;
     };
   }

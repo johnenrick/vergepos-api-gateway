@@ -8,7 +8,7 @@ class Product extends GenericModel
 {
   public $validationRules = [
     'description' => 'required|max:50',
-    'barcode' => 'unique:products,barcode,except,id',
+    // 'barcode' => 'unique:products,barcode,except,id',
     'cost' => 'required|numeric',
     'price' => 'required|numeric',
   ];
