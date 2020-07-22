@@ -145,16 +145,15 @@ class CompanyController extends GenericController
     return $companyUserResult;
   }
   private function addUserDefaultRole($companyID, $userID){
-    $userRole = ['company_id' => $companyID, 'user_id' => $userID, 'role_id' => 100];
+    $userRoleAdmin = ['company_id' => $companyID, 'user_id' => $userID, 'role_id' => 100];
     $userRoleModel = new App\UserRole();
     $userRoleModel->useSessionCompanyID = false;
-    $userRoleResult = (new Core\GenericCreate((new Core\TableStructure([
-      'columns' => [
-      ],
-      'foreign_tables' => [
-        'user_basic_information' => []
-      ]
-    ], $userRoleModel))->getStructure(), $userRoleModel))->create($userRole);
+    $userRoleResult = (new Core\GenericCreate((new Core\TableStructure([], $userRoleModel))->getStructure(), $userRoleModel));
+    $userRoleResult->create($userRoleAdmin);
+    $userRoleModelCashier = new App\UserRole();
+    $userRoleCashierResult = (new Core\GenericCreate((new Core\TableStructure([], $userRoleModel))->getStructure(), $userRoleModelCashier));
+    $userRoleCashier = ['company_id' => $companyID, 'user_id' => $userID, 'role_id' => 101];
+    $userRoleCashierResult->create($userRoleCashier);
     return $userRoleResult;
   }
 }

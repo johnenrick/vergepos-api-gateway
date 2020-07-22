@@ -178,7 +178,7 @@ class UserController extends GenericController
         $changePasswordRequestResult = ($changePasswordRequestModel->where('confirmation_code', $requestArray['confirmation_code'])->where('email', $requestArray['email'])->get())->toArray();
         if(count($changePasswordRequestResult) === 0){
           $this->responseGenerator->setFail([
-            "code" => 2,
+            "code" => 7,
             "message" => 'Cannot find any request that matches the given Confirmation Code and Email'
           ]);
         }else{
@@ -220,6 +220,39 @@ class UserController extends GenericController
       }
       // check code if used
       // update request db
+      return $this->responseGenerator->generate();
+    }
+    public function delete(Request $request){
+      $requestArray = $request->all();
+      $validator = Validator::make($requestArray, [
+        "id" => "required|exists:users,id"
+      ]);
+      if($validator->fails()){
+        $this->responseGenerator->setFail([
+          "code" => 1,
+          "message" => $validator->errors()->toArray()
+        ]);
+        return $this->responseGenerator->generate();
+      }
+      if($requestArray['id'] * 1 == $this->userSession() * 1){
+        $this->responseGenerator->setFail([
+          "code" => 3,
+          "message" => "Cannot delete own account"
+        ]);
+        return $this->responseGenerator->generate();
+      }
+      $userModel = new App\User();
+      $userModel = $userModel->join('company_users', 'company_users.user_id', '=', 'users.id');
+      $userModel = $userModel->where('company_id', $this->userSession('company_id'));
+      $result = $userModel->where('users.id', $requestArray['id'])->delete();
+      if($result){
+        $this->responseGenerator->setSuccess(true);
+      }else{
+        $this->responseGenerator->setFail([
+          "code" => 2,
+          "message" => "Cannot delete user"
+        ]);
+      }
       return $this->responseGenerator->generate();
     }
 }

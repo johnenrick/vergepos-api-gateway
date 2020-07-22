@@ -39,7 +39,6 @@ class ServiceLayerController extends Controller
       $param['PAYLOAD'] = $this->user(null);
       $request['DEBUG'] = $this->userTokenData; $this->getSubPermissions($serviceActionRegistry['id']);
       $request['api_link'] = $serviceActionRegistry['base_link'].'/'.$serviceActionRegistry['link'];
-      // printR($param);
       try {
         $client = new Client(["verify" => false]); //GuzzleHttp\Client
         $result = $client->request('POST', $serviceActionRegistry['base_link'].'/'.$serviceActionRegistry['link'], [
@@ -102,6 +101,9 @@ class ServiceLayerController extends Controller
             break;
           case 2:
             $httpErrorCode = 401;
+            break;
+          default:
+            $httpErrorCode = 422;
         }
         return response($response, $httpErrorCode)->header('Content-Type', $this->contentType);;
       }else{
