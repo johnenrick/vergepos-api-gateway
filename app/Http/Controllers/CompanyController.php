@@ -115,7 +115,7 @@ class CompanyController extends GenericController
       'address' => $companyAddress,
       'store_terminals' => [
         [
-          'description' => 'Default'
+          'description' => 'Default Terminal'
         ]
       ]
     ];
@@ -154,6 +154,10 @@ class CompanyController extends GenericController
     $userRoleCashierResult = (new Core\GenericCreate((new Core\TableStructure([], $userRoleModel))->getStructure(), $userRoleModelCashier));
     $userRoleCashier = ['company_id' => $companyID, 'user_id' => $userID, 'role_id' => 101];
     $userRoleCashierResult->create($userRoleCashier);
+    $userRoleModelManager = new App\UserRole();
+    $userRoleManagerResult = (new Core\GenericCreate((new Core\TableStructure([], $userRoleModel))->getStructure(), $userRoleModelManager));
+    $userRoleManager = ['company_id' => $companyID, 'user_id' => $userID, 'role_id' => 101];
+    $userRoleManagerResult->create($userRoleManager);
     return $userRoleResult;
   }
 }
