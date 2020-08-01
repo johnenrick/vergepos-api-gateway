@@ -18,10 +18,10 @@ Route::get('/', function () {
 Route::get('v1/', function(){
   echo 'Welcome to API v1';
 });
-Route::post('v1/test-connnection', function(){
+Route::post('v1/test-connection', function(){
   echo 'Ok!';
 });
-Route::get('v1/test-connnection', function(){
+Route::get('v1/test-connection', function(){
   echo 'Ok!';
 });
 Route::post('v1/{module}/{function}', "ServiceLayerController@index");
