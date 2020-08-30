@@ -156,7 +156,7 @@ class CompanyController extends GenericController
     $userRoleCashierResult->create($userRoleCashier);
     $userRoleModelManager = new App\UserRole();
     $userRoleManagerResult = (new Core\GenericCreate((new Core\TableStructure([], $userRoleModel))->getStructure(), $userRoleModelManager));
-    $userRoleManager = ['company_id' => $companyID, 'user_id' => $userID, 'role_id' => 101];
+    $userRoleManager = ['company_id' => $companyID, 'user_id' => $userID, 'role_id' => 102];
     $userRoleManagerResult->create($userRoleManager);
     return $userRoleResult;
   }
