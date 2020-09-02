@@ -36,9 +36,9 @@ class CompanyController extends GenericController
       'user.email' => 'required|email|unique:users,email',
       'user.password' => 'required|min:6',
       'user.pin' => 'required|size:4',
-      'user.user_basic_information.first_name' => 'required',
-      'user.user_basic_information.last_name' => 'required',
-      'user.user_basic_information.last_name' => 'required',
+      'user.user_basic_information.first_name' => 'required|min:1|max:30|regex:/^[a-zA-Z0-9\s]+$/',
+      'user.user_basic_information.last_name' => 'required|min:1|max:30|regex:/^[a-zA-Z0-9\s]+$/',
+      'user.user_basic_information.middle_name' => 'max:30|regex:/^[a-zA-Z0-9\s]+$/',
     ];
     $this->responseGenerator->addDebug('entry', $entry);
     if($validation->isValid($entry)){
@@ -114,9 +114,9 @@ class CompanyController extends GenericController
       'name' => $companyName,
       'address' => $companyAddress,
       'store_terminals' => [
-        [
-          'description' => 'Default Terminal'
-        ]
+        // [
+        //   'description' => 'Default Terminal'
+        // ]
       ]
     ];
     $storeModel = new App\Store();
