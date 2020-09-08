@@ -117,7 +117,7 @@ return [
     | Some may want this instead of never expiring tokens for e.g. a mobile app.
     | This is not particularly recommended, so make sure you have appropriate
     | systems in place to revoke the token if necessary.
-    |
+    | 
     */
 
     'refresh_ttl' => env('JWT_REFRESH_TTL', 43224), 
