@@ -14,8 +14,12 @@ class Transaction extends GenericModel
   protected $formulatedColumn = [
     'total_vat_sales' => "SUM('transaction_products.vat_sales')"
   ];
+  
   public function transaction_products(){
     return $this->hasMany('App\TransactionProduct');
+  }
+  public function transaction_payments(){
+    return $this->hasMany('App\TransactionPayment');
   }
   public function transaction_number(){
     return $this->belongsTo('App\TransactionNumber');

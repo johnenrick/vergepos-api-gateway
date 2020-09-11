@@ -23,6 +23,7 @@ class TransactionNumberController extends GenericController
               ]
             ],
             'transaction_computation' => [],
+            'transaction_payments' => [],
           ]
         ],
         'transaction_void' => [
@@ -36,6 +37,7 @@ class TransactionNumberController extends GenericController
                   ]
                 ],
                 'transaction_computation' => [],
+                'transaction_payments' => [],
               ]
             ]
           ]
@@ -78,6 +80,8 @@ class TransactionNumberController extends GenericController
       'transaction_numbers.*.transaction.status' => "required_with:transaction_numbers.*.transactions|in:1,2,3",
       'transaction_numbers.*.transaction.cash_tendered' => "required_with:transaction_numbers.*.transactions|numeric",
       'transaction_numbers.*.transaction.cash_amount_paid' => "required_with:transaction_numbers.*.transactions|numeric",
+      /* Transactions Payments*/
+      'transaction_numbers.*.transaction_payments' => 'array',
       /* Transactions: Transaction Products */
       'transaction_numbers.*.transaction.transaction_products' => "array",
       'transaction_numbers.*.transaction.transaction_products.*.product_id' => "required|exists:products,id",
@@ -150,8 +154,34 @@ class TransactionNumberController extends GenericController
       if(isset($transactionEntry['transaction_products']) && $transactionEntry['transaction_products']){
         $result['transaction_products'] = $this->createTransactionProducts($result['id'], $transactionEntry['transaction_products'], $createdAt);
       }
+      if(isset($transactionEntry['transaction_payments']) && $transactionEntry['transaction_payments']){
+        $result['transaction_payments'] = $this->createTransactionPayments($result['id'], $transactionEntry['transaction_payments'], $createdAt);
+      }
     }else{
       $result['error'] = 'create_failed';
+    }
+    return $result;
+  }
+  private function createTransactionPayments($transactionId, $transactionPayments, $createdAt){
+    $result = [];
+    for($x = 0; $x < count($transactionPayments); $x++){
+      $transactionPaymentResult = [
+        'id' => false,
+        'error' => false
+      ];
+      $transactionPaymentModel = new App\TransactionPayment();
+      $transactionPaymentModel->transaction_id = $transactionId;
+      $transactionPaymentModel->payment_method_id = $transactionPayments[$x]['payment_method_id'] * 1;
+      $transactionPaymentModel->amount = $transactionPayments[$x]['amount'] * 1;
+      $transactionPaymentModel->remarks = $transactionPayments[$x]['remarks'];
+      $transactionPaymentModel->created_at = $createdAt;
+      $transactionPaymentModel->updated_at = $createdAt;
+      if($transactionPaymentModel->save()){
+        $transactionPaymentResult['id'] = $transactionPaymentModel->id;
+      }else{
+        $transactionPaymentResult['error'] = 'create_failed';
+      }
+      $result[] = $transactionPaymentResult;
     }
     return $result;
   }

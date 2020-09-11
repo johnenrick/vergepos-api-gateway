@@ -65,7 +65,8 @@ $apiResource = [
   'transaction',
   'customer',
   'store-terminal',
-  'store'
+  'store',
+  'payment-method'
 ];
 $customAPIResources = [
   'transaction/sync',
