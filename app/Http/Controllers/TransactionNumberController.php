@@ -24,6 +24,7 @@ class TransactionNumberController extends GenericController
             ],
             'transaction_computation' => [],
             'transaction_payments' => [],
+            'transaction_customers' => [],
           ]
         ],
         'transaction_void' => [
@@ -38,6 +39,13 @@ class TransactionNumberController extends GenericController
                 ],
                 'transaction_computation' => [],
                 'transaction_payments' => [],
+                'transaction_customers' => [
+                  'foreign_tables' => [
+                    'customer' => [
+                      'is_parent' => true
+                    ]
+                  ]
+                ],
               ]
             ]
           ]
@@ -59,10 +67,8 @@ class TransactionNumberController extends GenericController
       "fail" => false  
     ];
     $terminals = $this->getStoreTerminal($this->userSession('company_id'));
-    $this->responseGenerator->addDebug('terminals:'.$this->userSession('company_id'), $terminals);
     $validator = Validator::make($entry, [
       'store_terminal_id' => "required|numeric|in:".implode($terminals, ','),
-      
       /* Transaction */
       'transaction_numbers' => "required|array",
       'transaction_numbers.*.id' => "required",
@@ -74,14 +80,16 @@ class TransactionNumberController extends GenericController
       'transaction_numbers.*.transaction_void' => "array",
       'transaction_numbers.*.transaction_void.*.transaction_id' => "required_with:transaction_numbers.*.transaction_voids|numeric",
       'transaction_numbers.*.transaction_void.*.remarks' => "required_with:transaction_numbers.*.transaction_voids|exists:products,id",
-      /* Transactions*/
+      /* Transactions */
       'transaction_numbers.*.transaction' => 'array',
       'transaction_numbers.*.transaction.id' => "required_with:transaction_numbers.*.transactions|numeric",
       'transaction_numbers.*.transaction.status' => "required_with:transaction_numbers.*.transactions|in:1,2,3",
       'transaction_numbers.*.transaction.cash_tendered' => "required_with:transaction_numbers.*.transactions|numeric",
       'transaction_numbers.*.transaction.cash_amount_paid' => "required_with:transaction_numbers.*.transactions|numeric",
-      /* Transactions Payments*/
-      'transaction_numbers.*.transaction_payments' => 'array',
+      /* Transactions Payments */
+      'transaction_numbers.*.transaction.transaction_payments' => 'array',
+      /* Transactions Payments */
+      'transaction_numbers.*.transaction.transaction_customers' => 'array',
       /* Transactions: Transaction Products */
       'transaction_numbers.*.transaction.transaction_products' => "array",
       'transaction_numbers.*.transaction.transaction_products.*.product_id' => "required|exists:products,id",
@@ -157,6 +165,9 @@ class TransactionNumberController extends GenericController
       if(isset($transactionEntry['transaction_payments']) && $transactionEntry['transaction_payments']){
         $result['transaction_payments'] = $this->createTransactionPayments($result['id'], $transactionEntry['transaction_payments'], $createdAt);
       }
+      if(isset($transactionEntry['transaction_customers']) && $transactionEntry['transaction_customers']){
+        $result['transaction_customers'] = $this->createTransactionCustomers($result['id'], $transactionEntry['transaction_customers'], $createdAt);
+      }
     }else{
       $result['error'] = 'create_failed';
     }
@@ -182,6 +193,27 @@ class TransactionNumberController extends GenericController
         $transactionPaymentResult['error'] = 'create_failed';
       }
       $result[] = $transactionPaymentResult;
+    }
+    return $result;
+  }
+  private function createTransactionCustomers($transactionId, $transactionCustomers, $createdAt){
+    $result = [];
+    for($x = 0; $x < count($transactionCustomers); $x++){
+      $transactionCustomerResult = [
+        'id' => false,
+        'error' => false
+      ];
+      $transactionCustomerModel = new App\TransactionCustomer();
+      $transactionCustomerModel->transaction_id = $transactionId;
+      $transactionCustomerModel->customer_id = $transactionCustomers[$x]['customer_id'] * 1;
+      $transactionCustomerModel->created_at = $createdAt;
+      $transactionCustomerModel->updated_at = $createdAt;
+      if($transactionCustomerModel->save()){
+        $transactionCustomerResult['id'] = $transactionCustomerModel->id;
+      }else{
+        $transactionCustomerResult['error'] = 'create_failed';
+      }
+      $result[] = $transactionCustomerResult;
     }
     return $result;
   }

@@ -73,6 +73,7 @@ $customAPIResources = [
   'transaction-number/sync',
   'user/request-change-password',
   'user/confirm-change-password',
+  'customer/batch-create'
 ];
 $api_resource($apiResource);
 $custom_api($customAPIResources);

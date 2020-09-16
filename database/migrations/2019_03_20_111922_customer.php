@@ -17,7 +17,7 @@ class Customer extends Migration
           $table->bigIncrements('id');
           $table->unsignedInteger('company_id');
           $table->char('name', 30);
-          $table->text('address', 30)->nullable();
+          $table->text('address', 100)->nullable();
           $table->timestamp('birthdate')->nullable();
           $table->timestamps();
           $table->softDeletes();

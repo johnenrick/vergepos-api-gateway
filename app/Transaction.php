@@ -21,6 +21,9 @@ class Transaction extends GenericModel
   public function transaction_payments(){
     return $this->hasMany('App\TransactionPayment');
   }
+  public function transaction_customers(){
+    return $this->hasMany('App\TransactionCustomer');
+  }
   public function transaction_number(){
     return $this->belongsTo('App\TransactionNumber');
   }
