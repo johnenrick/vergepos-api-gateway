@@ -66,14 +66,16 @@ $apiResource = [
   'customer',
   'store-terminal',
   'store',
-  'payment-method'
+  'payment-method',
+  'inventory-adjustment'
 ];
 $customAPIResources = [
   'transaction/sync',
   'transaction-number/sync',
   'user/request-change-password',
   'user/confirm-change-password',
-  'customer/batch-create'
+  'customer/batch-create',
+  'inventory-adjustment/batch-create',
 ];
 $api_resource($apiResource);
 $custom_api($customAPIResources);
