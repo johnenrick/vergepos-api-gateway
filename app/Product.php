@@ -10,7 +10,7 @@ class Product extends GenericModel
     'description' => 'required|max:50',
     // 'barcode' => 'unique:products,barcode,except,id',
     'cost' => 'required|numeric',
-    'price' => 'required|numeric',
+    'price' => 'numeric',
   ];
   public $validationRuleNotRequired = ['is_available', 'short_description', 'barcode'];
   public function systemGenerateValue($entry){
