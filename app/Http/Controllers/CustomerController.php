@@ -28,7 +28,7 @@ class CustomerController extends GenericController
       "customers" => "required|array",
       "customers.*.name" => "required|max:30|regex:/^[a-zA-Z0-9\s]+$/",
       "customers.*.address" => "max:100|regex:/^[a-zA-Z0-9\s]+$/",
-      "customers.*.birthdate" => "date",
+      "customers.*.birthdate" => "date|date_format:Y-m-d H:i:s|nullable",
     ]);
 
     if($validator->fails()){

@@ -34,7 +34,7 @@ class ServiceLayerController extends Controller
       $request = [
         'data' => null, // the data if request is success
         'error' => null, // array of errors
-        'debug' => null
+        'debug' => null,
       ];
       $param['PAYLOAD'] = $this->user(null);
       $request['DEBUG'] = $this->userTokenData; $this->getSubPermissions($serviceActionRegistry['id']);
@@ -70,21 +70,21 @@ class ServiceLayerController extends Controller
             ];
           }
         }else{
-        //   $request['error'] = [
-        //     "link" => $serviceActionRegistry['base_link'].'/'.$serviceActionRegistry['link'],
-        //     "code" => 500,
-	       // "message" => 'Response is null'
-        //   ];
+          $request['error'] = [
+            "link" => $serviceActionRegistry['base_link'].'/'.$serviceActionRegistry['link'],
+            "code" => 5000000,
+	          "message" => 'Response is null'
+          ];
         }
         
         $request['debug'] = isset($response['debug']) ? $response['debug'] : null;
       } catch(ServerException $eS){
           $request['error'] = [
-              "link" => $serviceActionRegistry['base_link'].'/'.$serviceActionRegistry['link'],
-              "code" => $responseRaw->getStatusCode(),
-              "message" => 'Unknow Error',
-              "response_body" => (string)$responseRaw->getBody()
-            ];
+            "link" => $serviceActionRegistry['base_link'].'/'.$serviceActionRegistry['link'],
+            "code" => $responseRaw->getStatusCode(),
+            "message" => 'Unknow Error',
+            "response_body" => (string)$responseRaw->getBody()
+          ];
       }
       return $request;
     }
