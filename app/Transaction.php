@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends GenericModel
 {
-  protected $validationRuleNotRequired = ['transaction_number_id', 'customer_id', 'status'];
+  protected $validationRuleNotRequired = ['transaction_number_id', 'customer_id', 'status', 'remarks'];
   public function systemGenerateValue($data){
     $data['status'] = 1;
     return $data;

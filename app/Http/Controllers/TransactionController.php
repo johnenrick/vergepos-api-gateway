@@ -24,6 +24,7 @@ class TransactionController extends GenericController
     $this->initGenericController();
   }
   public function create(Request $request){
+    
     $entry = $request->all();
     $resultObject = [
       "success" => false,
@@ -81,7 +82,6 @@ class TransactionController extends GenericController
     $this->responseGenerator->addDebug('terminals:'.$this->userSession('company_id'), $terminals);
     $validator = Validator::make($entry, [
       'store_terminal_id' => "required|numeric|in:".implode($terminals, ','),
-      
       /* Transaction */
       'transactions' => "required|array",
       'transactions.*.id' => "required",

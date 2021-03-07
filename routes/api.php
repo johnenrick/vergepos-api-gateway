@@ -79,7 +79,8 @@ $customAPIResources = [
   'customer/batch-create',
   'inventory-adjustment/batch-create',
   'work-shift/sync',
-  'work-shift-cash-reading/sync'
+  'work-shift-cash-reading/sync',
+  'sync/sync'
 ];
 $api_resource($apiResource);
 $custom_api($customAPIResources);
