@@ -149,6 +149,7 @@ class TransactionNumberController extends GenericController
     $transaction->status = $transactionEntry['status'];
     $transaction->cash_tendered = $transactionEntry['cash_tendered'] . '';
     $transaction->cash_amount_paid = $transactionEntry['cash_amount_paid'] . '';
+    $transaction->remarks = $transactionEntry['remarks'] . '';
     
     $transaction->created_at = $createdAt;
     $transaction->updated_at = $createdAt;
