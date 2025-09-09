@@ -29,5 +29,19 @@
         <server name="MAIL_DRIVER" value="array"/>
         <server name="QUEUE_CONNECTION" value="sync"/>
         <server name="SESSION_DRIVER" value="array"/>
+
+        <server name="DB_CONNECTION" value="sqlite"/>
+        <server name="DB_DATABASE" value=":memory:"/>
+
+        <!--
+          If you want to run some tests against real MySQL (vergepos_api_gateway_test), override these
+          environment vars in CI or your shell:
+            DB_CONNECTION=mysql
+            DB_HOST=127.0.0.1
+            DB_PORT=3306
+            DB_DATABASE=vergepos_api_gateway_test
+            DB_USERNAME=<your_db_username>
+            DB_PASSWORD=<your_db_password>
+        -->
     </php>
 </phpunit>
