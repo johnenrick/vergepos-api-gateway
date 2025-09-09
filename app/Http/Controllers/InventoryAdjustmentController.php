@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use App;
 
 class InventoryAdjustmentController extends GenericController
@@ -38,6 +40,7 @@ class InventoryAdjustmentController extends GenericController
       "inventory_adjustments.*.quantity" => "required|numeric",
       "inventory_adjustments.*.previous_quantity" => "required|numeric",
       "inventory_adjustments.*.created_at" => "required|date",
+      "inventory_adjustments.*.client_uuid" => "nullable|string",
       "inventory_adjustments.*.updated_at" => "required|date",
     ]);
 
@@ -47,13 +50,33 @@ class InventoryAdjustmentController extends GenericController
         "message" => $validator->errors()->toArray()
       ]);
     }else{
-      foreach($entries['inventory_adjustments'] as $entryKey => $entry){
-        $entries['inventory_adjustments'][$entryKey]['remarks'] = strip_tags($entries['inventory_adjustments'][$entryKey]['remarks']);
+      foreach ($entries['inventory_adjustments'] as $entryKey => $entry) {
+        // sanitize
+        $entries['inventory_adjustments'][$entryKey]['remarks'] = strip_tags($entry['remarks'] ?? '');
+
+        // set store
         $entries['inventory_adjustments'][$entryKey]['store_id'] = $entries['store_id'];
+
+        // generate deterministic fingerprint used as idempotency key
+        // use fields that uniquely identify the adjustment payload (store, product, user, type, quantity, previous_quantity, created_at)
+        $fingerprintSource = sprintf(
+            '%s|%s|%s|%s|%s|%s|%s',
+            $entries['store_id'],
+            $entry['product_id'] ?? '',
+            $entry['user_id'] ?? '',
+            $entry['type'] ?? '',
+            (string)($entry['quantity'] ?? ''),
+            (string)($entry['previous_quantity'] ?? ''),
+            $entry['created_at'] ?? ''
+        );
+        // sha1 gives a deterministic hex string; save into client_uuid
+        $entries['inventory_adjustments'][$entryKey]['client_uuid'] = hash('sha1', $fingerprintSource);
+
+        // force no id fields coming from client
         unset($entries['inventory_adjustments'][$entryKey]['id']);
         unset($entries['inventory_adjustments'][$entryKey]['db_id']);
       }
-      
+
       $newIds = $this->insertNewInventoryAdjustments($entries['inventory_adjustments']); // the function will modify the first parameter array
       $this->groupSyncInventoryAdjustments($entries['inventory_adjustments'], $entries['store_id'], $entries['last_datetime_update']);
       $updatedInventoryAdjustments = $this->getUpdatedInventoryadjustments($entries['last_datetime_update'], $entries['store_id']);
@@ -98,15 +121,35 @@ class InventoryAdjustmentController extends GenericController
     return $allInventoryAdjustments;
   }
   private function insertNewInventoryAdjustments($inventoryAdjustments){
-    $inventoryAdjustmentDB = new App\InventoryAdjustment();
-    $this->responseGenerator->addDebug('pis', $inventoryAdjustments);
-    $result = $inventoryAdjustmentDB->insert($inventoryAdjustments);
-    $ids = ($inventoryAdjustmentDB->orderBy('id', 'desc')
-      ->join('company_users', "company_users.user_id", "=", "inventory_adjustments.user_id")
-      ->where('company_users.company_id', $this->userSession('company_id'))
-      ->take(count($inventoryAdjustments))->select('inventory_adjustments.id')->pluck('id'))->toArray();
-    $ids = array_reverse($ids);
-    return $ids;
+    // $inventoryAdjustments: array of associative arrays; each must contain client_uuid (see batchCreate)
+    if (empty($inventoryAdjustments)) {
+      return [];
+    }
+
+    $insertedIds = [];
+
+    DB::transaction(function() use (&$insertedIds, $inventoryAdjustments) {
+      // Use insertOrIgnore to skip duplicates based on unique client_uuid
+      DB::table('inventory_adjustments')->insertOrIgnore($inventoryAdjustments);
+
+      // collect client_uuids in original order
+      $uuids = array_map(function($row){
+        return isset($row['client_uuid']) ? $row['client_uuid'] : null;
+      }, $inventoryAdjustments);
+
+      // fetch IDs for those client_uuids (mapping client_uuid => id)
+      $rows = DB::table('inventory_adjustments')
+        ->whereIn('client_uuid', array_filter($uuids))
+        ->pluck('id', 'client_uuid')
+        ->toArray();
+
+      // preserve original input order: build array of ids (or false if not found)
+      foreach ($uuids as $uuid) {
+        $insertedIds[] = isset($rows[$uuid]) ? (int)$rows[$uuid] : false;
+      }
+    });
+
+    return $insertedIds;
   }
   
 }
