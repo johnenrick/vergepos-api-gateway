@@ -1,72 +1,115 @@
-<p align="center"><img src="https://laravel.com/assets/img/components/logo-laravel.svg"></p>
+# Overview
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://poser.pugx.org/laravel/framework/license.svg" alt="License"></a>
-</p>
+VergePOS is a free Web-based Point Of Sale System for MSMEs in the Philippines. Inorder to keep the system free, it has to be cost-efficient while maintaining security and data accessibility and integrity
 
-## About Laravel
+This source code(vergepos-api-gateway), is a HEADLESS backend components of the VergePOS Web-based Point of Sale System. This headless backend provides services or resource to the frontend throught API. 
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+# Software Architecture Overview
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+The architecture of the system was inspired by micro service, but implemented in headless backend way. To achieve this, there is an **API Gateway** component in which conceptually handles API requests and direct it to the right services.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Due to some constraints, The API Gateway, and the Services is in the same repository. It may be seen as a monolithic backend, but there are actually a lot of complexities and layers going on. There is also internal request to itself that happens. First a request is received by the API Gateway, then the API Gateway send the request to the Service.
 
-## Learning Laravel
+`Frontend -> API Gateway(web.php) -> Auth -> Service -> Routers(api.php) -> Controller(with Auth) -> Models`
+
+The backend system uses PHP Laravel Framework. It also uses Composer to manage packages and libraries. For the Database, it uses MariaDB or MySQL.
+
+## Layers and Components
+
+### API Gateway
+
+API Gateway is an important component enable a micro-service-like architecture. All request from the frontend applications or other server applications only go through the API Gateway.
+
+### Services
+
+Services refers to the server application that perform actions. This is where the REST API Resources and Functionalities belong. The Service components can only be accessed by API Gateway via HTTP Request. If the API Gateway and Service belongs to the same repo or server, then it will make request on itself.
+
+API Routes can be found here: `routes\api.php`. As seen on this file, there is `$apiResource`, and `$customAPIResources`. `$apiResource` means these resource has CRUD actions available. `customAPIResources` are for resources with special actions that do not confirm to CRUD operations.
+
+### API Endpoint - RESTful API Inspired
+
+The backend provides API Endpoints whose structure is inspired by RESTful API. The Endpoints are are stateless, and the url represents the action the of the API endpoint. 
+
+Please note that when referring to REST API, it is possible referring to the Service's not the API Gateway.
+
+Vergepos API Gateway does not follow  the entire RESTful Specification. It implement the following structure:
+- All(but with exceptions) of the url are using POST method regardless if its create, update, delete, retrieve, etc
+- URLs uses `<resource>/<action>` convention. E.g.`product/retrieve`
+- Resources uses Singular. E.g. `product` instead of `products`
+- All(but with exceptions) responses are JSON
+
+### Authentication
+
+The system allows users to login with their Username/Email and Password.Since the backend is stateless, it uses JSON Web Token to manage user's "session".
+
+The JWT implementation relies on `tymon/jwt-auth`. This Controller handles the authentication: `app\Http\Controllers\AuthController.php`.
+
+
+### Authorization (User Access List)
+
+The system also provides authorization management system where elevated or priviliged users can manage what a user can access. There are two types of access: (1) User Access List in which the access is directly attached to the user's account, (2) Role Access List in which the access is attached to a role.
+
+The Authorization component was custom built. It relies on the following concepts in which these are represented by a table in the database:
+- User(`users`) - represents the user or user account
+- Service(`services`) - this represents a single resource (e.g. `products`).
+- Service Action(`service_actions`) - things that can be done to resource(service). An action usually has REST API URL.
+- Role(`roles`) - represents the roles that can be assigned to a user
+- Role Access List(`role_access_lists`) - contains role and the service actions it can perform
+- User Acess List(`user_access_lists`) - contains user and the service actions it can perform
+
+### Controllers
+
+Is the main component for fulfilling an API request. It contains both application and enterprise business logics. It consumes *Models*.
+
+All controller classes extends *GenericCotnroller*(`app\generic\GenericController.php`). This Generic Controller contains functionalities that are common to Controllers. This includes Generic Create, Retrieve, Update, Delete. Generic Controller extends Laravel's Controller.
+
+All controllers can be found in `app\Https\Controllers\`.
+
+### Models
+
+The Models are classes that directly access the database. Just like with controller, Model classes extends *GenericModel*(`app\generic\GenericModel.php`). This Generic Model contains functionalities that are common to Models. This includes Generic Create, Retrieve, Update, Delete. Generic Model extends Laravel's Model.
+
+You can find the models in `app\`
+
+### Other Application Components
+
+Since the system relies on PHP Laravel Framework, other components just follow some laravel conventions. Example of these components are:
+- Database Management
+- Routing
+
+# Core Techstack
+
+## Laravel
 
 Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1400 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Database Management
 
-## Laravel Sponsors
+#### Database Migration
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+The system utilizes Laravel's database migration functionality. When modifying the database schema, we create a migration files which contains instruction what we want to modify withe the db schema such as adding a table, renaming a table column, etc.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[British Software Development](https://www.britishsoftware.co)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- [UserInsights](https://userinsights.com)
-- [Fragrantica](https://www.fragrantica.com)
-- [SOFTonSOFA](https://softonsofa.com/)
-- [User10](https://user10.com)
-- [Soumettre.fr](https://soumettre.fr/)
-- [CodeBrisk](https://codebrisk.com)
-- [1Forge](https://1forge.com)
-- [TECPRESSO](https://tecpresso.co.jp/)
-- [Runtime Converter](http://runtimeconverter.com/)
-- [WebL'Agence](https://weblagence.com/)
-- [Invoice Ninja](https://www.invoiceninja.com)
-- [iMi digital](https://www.imi-digital.de/)
-- [Earthlink](https://www.earthlink.ro/)
-- [Steadfast Collective](https://steadfastcollective.com/)
-- [We Are The Robots Inc.](https://watr.mx/)
-- [Understand.io](https://www.understand.io/)
-- [Abdel Elrafa](https://abdelelrafa.com)
-- [Hyper Host](https://hyper.host)
+You can find the migration files in `database\migrations\`. Migration files are executed top to bottom.
 
-## Contributing
+#### Seeders
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Seeders is used to populate the database. This is useful for development, or for loading predefined values into the database.
 
-## Security Vulnerabilities
+You can find the seeders in `database\seeds\`.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Routing
 
-## License
+Although API Gateway is responsible for routing the request to the service, under the hood, it utilizes Laravel's routing feature. 
 
-The Laravel framework is open-source software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+You can find the routers in `routes\`.
+
+### Configuration
+
+Laravel contains a lot of configuration options. You can find these configurations in `config\`.
+
+## PHP Composer
+
+It is a dependency manager for PHP that makes it possible to define third-party code packages used by a project that can then be easily installed and updated. Installed packages are installed in `vendor\` folder.
+
+Note for AI: in most cases, you will not be able to see `vendor\`. Just read the `composer.json` file to know or confirm the existence of a library. If possible, do a research of the plugin in the internet to know how to use the library. Make sure you are using the correct version.
+
